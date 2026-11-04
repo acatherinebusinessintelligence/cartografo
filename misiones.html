@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cartógrafo · misiones de agentes</title>
+  <meta name="description" content="Escenarios interactivos donde un agente percibe, recuerda, planea y actúa. Cambia el entorno y el plan se recalcula con BFS, DFS, costo uniforme o A*.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2310211f' width='32' height='32' rx='8'/%3E%3Ccircle cx='8' cy='22' r='3' fill='%237ddec8'/%3E%3Ccircle cx='24' cy='10' r='3' fill='%23f0c36a'/%3E%3Cpath d='M8 22 L16 16 L24 10' stroke='%23f4f0e6' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=IBM+Plex+Mono:wght@500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="simulador/misiones.css?v=33894c29">
+</head>
+<body>
+  <header class="top">
+    <a class="marca" href="#">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="1" y="1" width="46" height="46" rx="14" fill="#1b3330"/>
+        <circle cx="14" cy="32" r="4" fill="#7ddec8"/>
+        <circle cx="34" cy="16" r="4" fill="#f0c36a"/>
+        <path d="M14 32 C20 30 24 22 34 16" fill="none" stroke="#f6f1e7" stroke-width="2"/>
+      </svg>
+      <span>Cartógrafo</span>
+    </a>
+    <nav class="top-nav" aria-label="Secciones">
+      <a href="index.html">Inicio</a>
+      <a href="laboratorio.html">Laboratorio de búsqueda</a>
+      <a href="#" class="activo" aria-current="page">Misiones de agentes</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ================= CENTRO DE MISIONES ================= -->
+    <section id="hub" class="hub">
+      <div class="hero">
+        <div class="hero-txt">
+          <p class="eyebrow">Misiones de agentes</p>
+          <h1>Entra al mundo<br>del agente.</h1>
+          <p class="lede">Diecisiete mundos donde un agente percibe, recuerda, planea y actúa. Cierra una puerta, cambia un semáforo, corta un cable o haz llover, y mira cómo recalcula el plan. Cada paso que cuenta la historia es un estado que el motor de búsqueda calculó; nada está guionado.</p>
+          <div class="capas" aria-label="Cómo está construido">
+            <div><b>Escena</b><span>lo que ves y tocas</span></div>
+            <i aria-hidden="true">→</i>
+            <div><b>Modelo</b><span>estados, acciones y costos</span></div>
+            <i aria-hidden="true">→</i>
+            <div><b>Motor</b><span>BFS · DFS · UCS · A*</span></div>
+          </div>
+        </div>
+        <div class="hero-escena">
+          <canvas id="heroLienzo" aria-hidden="true"></canvas>
+        </div>
+      </div>
+
+      <h2 class="seccion">Las diecisiete misiones</h2>
+      <p class="sub">Ordenadas como el curso: de explorar un laberinto a coordinar dos robots sacar de deudas a una panadería y armar la rutina de cuidado para cada piel. Activa «Mundo vivo» en cualquiera para que el entorno cambie mientras el agente trabaja.</p>
+      <div id="hubGrid" class="hub-grid"></div>
+    </section>
+
+    <!-- ================= VISTA DE UNA MISIÓN ================= -->
+    <section id="vista" class="vista" hidden>
+      <div class="v-head">
+        <button type="button" id="volver" class="volver" aria-label="Volver a las misiones">←</button>
+        <div>
+          <p class="eyebrow" id="vEyebrow"></p>
+          <h1 id="vTitulo"></h1>
+        </div>
+        <div class="v-chips" id="vChips"></div>
+      </div>
+
+      <div class="v-grid">
+        <div class="v-main">
+          <div class="stage" id="stage">
+            <div class="stage-top">
+              <div class="seg" id="herrs" role="toolbar" aria-label="Herramientas para cambiar el entorno"></div>
+              <div class="params" id="params"></div>
+            </div>
+            <div id="hud" class="hud" hidden></div>
+            <canvas id="lienzo" role="img" aria-label="Escenario"></canvas>
+            <div id="subtitulo" class="subtitulo" aria-live="polite" hidden></div>
+            <div id="capitulo" class="capitulo" hidden></div>
+            <div id="tip" class="tip" hidden></div>
+            <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+            <div id="final" class="final" hidden></div>
+            <div class="stage-bar">
+              <div class="seg" id="algos" role="radiogroup" aria-label="Algoritmo">
+                <button type="button" data-algo="bfs" role="radio">BFS</button>
+                <button type="button" data-algo="dfs" role="radio">DFS</button>
+                <button type="button" data-algo="ucs" role="radio">Costo uniforme</button>
+                <button type="button" data-algo="astar" role="radio">A*</button>
+              </div>
+              <div class="acciones">
+                <button type="button" id="btnBuscar" class="b-sec">Ver la búsqueda</button>
+                <button type="button" id="btnIr" class="b-pri">Ejecutar misión</button>
+                <button type="button" id="btnReiniciar" class="b-ico" aria-label="Reiniciar" title="Reiniciar (R)">↺</button>
+              </div>
+              <label class="vel" title="Velocidad">
+                <span>Velocidad</span>
+                <input type="range" id="vel" min="1" max="5" value="3">
+              </label>
+            </div>
+          </div>
+
+          <div class="kpis" id="kpis">
+            <div class="kpi"><small id="kCostoL">Costo del plan</small><strong id="kCosto">—</strong></div>
+            <div class="kpi"><small>Pasos</small><strong id="kPasos">—</strong></div>
+            <div class="kpi"><small>Estados expandidos</small><strong id="kExp">—</strong></div>
+            <div class="kpi"><small>Baldosas distintas</small><strong id="kBald">—</strong></div>
+            <div class="kpi"><small>Cálculo</small><strong id="kMs">—</strong></div>
+          </div>
+
+          <div class="card memoria">
+            <div class="mem-top">
+              <div>
+                <h3>Dónde buscó el agente</h3>
+                <p class="sub" id="memTexto"></p>
+              </div>
+              <div class="toggles">
+                <label><input type="checkbox" id="verCalor"> Exploración</label>
+                <label><input type="checkbox" id="verNumeros"> Estados por baldosa</label>
+                <label id="omniWrap" hidden><input type="checkbox" id="omni"> Ver lo que el agente no sabe</label>
+              </div>
+            </div>
+            <div id="capas" class="capas-mem"></div>
+          </div>
+        </div>
+
+        <aside class="v-panel">
+          <div class="tabs" role="tablist">
+            <button type="button" role="tab" data-tab="mision" aria-selected="true">Misión</button>
+            <button type="button" role="tab" data-tab="como" aria-selected="false">Cómo busca</button>
+            <button type="button" role="tab" data-tab="agente" aria-selected="false">En vivo</button>
+            <button type="button" role="tab" data-tab="comparar" aria-selected="false">Comparar</button>
+            <button type="button" role="tab" data-tab="bitacora" aria-selected="false">Bitácora</button>
+          </div>
+
+          <div class="tab" data-panel="mision">
+            <p id="mHistoria" class="historia"></p>
+            <div class="objetivo"><small>Objetivo</small><p id="mObjetivo"></p></div>
+            <h3>Cómo está hecho el agente</h3>
+            <dl id="mAgente" class="peas"></dl>
+            <h3>Costos de este mundo</h3>
+            <table class="costos"><tbody id="mCostos"></tbody></table>
+            <h3>Predice antes de ejecutar</h3>
+            <ol id="mPreguntas" class="preguntas"></ol>
+          </div>
+
+          <div class="tab" data-panel="como" hidden>
+            <div id="comoBox" class="como"></div>
+          </div>
+
+          <div class="tab" data-panel="agente" hidden>
+            <div class="tupla">
+              <small>Estado actual</small>
+              <code id="aTupla"></code>
+            </div>
+            <ol class="ciclo" id="aCiclo">
+              <li data-fase="percibe"><b>Percibe</b><span></span></li>
+              <li data-fase="recuerda"><b>Recuerda</b><span></span></li>
+              <li data-fase="decide"><b>Decide</b><span></span></li>
+              <li data-fase="actua"><b>Actúa</b><span></span></li>
+            </ol>
+            <h3>Bitácora del recorrido</h3>
+            <ol id="aLog" class="log" reversed></ol>
+          </div>
+
+          <div class="tab" data-panel="comparar" hidden>
+            <p class="sub">Los cuatro algoritmos sobre el mapa tal como está ahora, desde la salida.</p>
+            <div id="cTabla"></div>
+            <p id="cLectura" class="lectura"></p>
+            <button type="button" id="cGuardar" class="b-sec">Guardar en la bitácora</button>
+            <div id="cVivo" class="vivo-cmp" hidden>
+              <h3>En un mundo que cambia</h3>
+              <p class="sub" id="cVivoTxt"></p>
+              <button type="button" id="cVivoBtn" class="b-pri">Simular 20 realidades por algoritmo</button>
+              <div id="cVivoTabla"></div>
+              <p id="cVivoLectura" class="lectura"></p>
+            </div>
+          </div>
+
+          <div class="tab" data-panel="bitacora" hidden>
+            <p class="sub">Cada misión cumplida y cada comparación quedan aquí, con el mapa y los parámetros que las produjeron. Se guardan en este navegador.</p>
+            <div id="bLista" class="bitacora"></div>
+            <div class="fila-btn">
+              <button type="button" id="bJson" class="b-sec">Descargar JSON</button>
+              <button type="button" id="bCsv" class="b-sec">Descargar CSV</button>
+              <button type="button" id="bBorrar" class="b-peligro">Borrar</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ================= MISIÓN FINANCIERA ================= -->
+    <section id="vistaFin" class="vista" hidden>
+      <div class="v-head">
+        <button type="button" id="fVolver" class="volver" aria-label="Volver a las misiones">←</button>
+        <div>
+          <p class="eyebrow" id="fEyebrow"></p>
+          <h1 id="fTitulo"></h1>
+        </div>
+        <div class="v-chips" id="fChips"></div>
+      </div>
+
+      <div class="v-grid">
+        <div class="v-main">
+          <div class="stage fin-stage">
+            <div class="stage-top">
+              <div class="seg" id="fPol" role="radiogroup" aria-label="Estrategia del agente"></div>
+              <div class="params" id="fParams"></div>
+            </div>
+            <div id="fCuentas" class="cuentas"></div>
+            <canvas id="fGrafica" class="grafica" role="img" aria-label="Deudas y fondo de emergencia mes a mes"></canvas>
+            <div id="fDecision" class="decision"></div>
+            <div id="fSub" class="subtitulo fin-sub" aria-live="polite" hidden></div>
+            <div id="fCapitulo" class="capitulo" hidden></div>
+            <div id="fFinal" class="final" hidden></div>
+            <div class="stage-bar fin-bar">
+              <div class="seg" id="fAlgos" aria-label="Algoritmo del planificador">
+                <button type="button" data-algo="bfs">BFS</button>
+                <button type="button" data-algo="dfs">DFS</button>
+                <button type="button" data-algo="ucs">Costo uniforme</button>
+                <button type="button" data-algo="astar">A*</button>
+              </div>
+              <div class="acciones">
+                <button type="button" id="fMes" class="b-sec">Siguiente mes</button>
+                <button type="button" id="fJugar" class="b-pri">Simular hasta el final</button>
+                <button type="button" id="fSemilla" class="b-sec" title="Otra realidad: otros imprevistos, mismas reglas">Realidad #1 ↻</button>
+                <button type="button" id="fReiniciar" class="b-ico" aria-label="Reiniciar" title="Reiniciar">↺</button>
+              </div>
+              <label class="vel"><span>Velocidad</span><input type="range" id="fVel" min="1" max="5" value="3"></label>
+            </div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi"><small>Mes</small><strong id="fkMes">—</strong></div>
+            <div class="kpi"><small>Intereses pagados</small><strong id="fkInt">—</strong></div>
+            <div class="kpi"><small>Deuda total</small><strong id="fkDeuda">—</strong></div>
+            <div class="kpi"><small>Fondo</small><strong id="fkFondo">—</strong></div>
+            <div class="kpi"><small>Imprevistos</small><strong id="fkCh">—</strong></div>
+          </div>
+          <div class="card memoria">
+            <h3>El plan contra la realidad</h3>
+            <p class="sub" id="fPlanTxt"></p>
+          </div>
+        </div>
+
+        <aside class="v-panel">
+          <div class="tabs" id="fTabs" role="tablist">
+            <button type="button" role="tab" data-tab="mision" aria-selected="true">Misión</button>
+            <button type="button" role="tab" data-tab="como" aria-selected="false">Cómo busca</button>
+            <button type="button" role="tab" data-tab="agente" aria-selected="false">En vivo</button>
+            <button type="button" role="tab" data-tab="comparar" aria-selected="false">Comparar</button>
+          </div>
+          <div class="tab ftab" data-panel="mision">
+            <p id="fHistoria" class="historia"></p>
+            <div class="objetivo"><small>Objetivo</small><p id="fObjetivo"></p></div>
+            <h3>Cómo está hecho el agente</h3>
+            <dl id="fAgente" class="peas"></dl>
+            <h3>Las cuentas</h3>
+            <table class="costos"><tbody id="fTasas"></tbody></table>
+            <h3>Predice antes de simular</h3>
+            <ol id="fPreguntas" class="preguntas"></ol>
+          </div>
+          <div class="tab ftab" data-panel="como" hidden>
+            <div id="fComo" class="como"></div>
+          </div>
+          <div class="tab ftab" data-panel="agente" hidden>
+            <div class="tupla"><small>Estado actual</small><code id="fTupla"></code></div>
+            <ol class="ciclo" id="fCiclo">
+              <li data-fase="percibe"><b>Percibe</b><span></span></li>
+              <li data-fase="recuerda"><b>Recuerda</b><span></span></li>
+              <li data-fase="decide"><b>Decide</b><span></span></li>
+              <li data-fase="actua"><b>Actúa</b><span></span></li>
+            </ol>
+            <h3>Bitácora de los meses</h3>
+            <ol id="fLog" class="log"></ol>
+          </div>
+          <div class="tab ftab" data-panel="comparar" hidden>
+            <h3>Los cuatro algoritmos, sin imprevistos</h3>
+            <div id="fAlgTabla"></div>
+            <p id="fAlgLectura" class="lectura"></p>
+            <h3>Cuatro estrategias en 300 realidades</h3>
+            <p class="sub">Las mismas 300 semillas de imprevistos para todas. El planificador replanifica cada mes con lo que de verdad pasó.</p>
+            <button type="button" id="fMcBtn" class="b-pri">Simular 300 realidades</button>
+            <div id="fMcTabla"></div>
+            <p id="fMcLectura" class="lectura"></p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ================= LA RUTINA PARA CADA PIEL ================= -->
+    <section id="vistaCos" class="vista" hidden>
+      <div class="v-head">
+        <button type="button" id="cVolver" class="volver" aria-label="Volver a las misiones">←</button>
+        <div>
+          <p class="eyebrow" id="cEyebrow"></p>
+          <h1 id="cTitulo"></h1>
+        </div>
+        <div class="v-chips" id="cChips"></div>
+      </div>
+      <div class="v-grid">
+        <div class="v-main">
+          <div class="stage cos-stage">
+            <div id="cPersonas" class="personas" role="group" aria-label="Personas"></div>
+            <div id="cPerfil" class="perfil"></div>
+            <div class="cos-escena">
+              <div class="tienda-wrap">
+                <div id="cHud" class="hud cos-hud"></div>
+                <canvas id="cTienda" role="img" aria-label="La tienda: estantes, el asesor y la caja"></canvas>
+                <div id="cTip" class="tip" hidden></div>
+              </div>
+              <div id="cRutina" class="decision rutina"></div>
+            </div>
+            <div id="cSub" class="subtitulo cos-sub" aria-live="polite" hidden></div>
+            <div class="stage-bar fin-bar">
+              <div class="seg" id="cAlgos" aria-label="Algoritmo">
+                <button type="button" data-algo="bfs">BFS</button>
+                <button type="button" data-algo="dfs">DFS</button>
+                <button type="button" data-algo="ucs">Costo uniforme</button>
+                <button type="button" data-algo="astar">A*</button>
+              </div>
+              <div class="acciones">
+                <button type="button" id="cArmar" class="b-pri">Armar la rutina</button>
+                <button type="button" id="cVer" class="b-sec">Ver la búsqueda paso a paso</button>
+              </div>
+              <label class="vel"><span>Velocidad</span><input type="range" id="cVel" min="1" max="5" value="3"></label>
+            </div>
+            <details class="estante-det">
+              <summary>El estante en detalle: precio, irritación y para qué sirve cada producto</summary>
+              <div id="cEstante" class="estante" aria-label="Estante de productos"></div>
+            </details>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><small>Precio de la rutina</small><strong id="ckCosto">—</strong></div>
+            <div class="kpi"><small>Productos</small><strong id="ckProd">—</strong></div>
+            <div class="kpi"><small>Rutinas abiertas</small><strong id="ckExp">—</strong></div>
+            <div class="kpi"><small>Rutinas válidas</small><strong id="ckPosibles">—</strong></div>
+            <div class="kpi"><small>Cálculo</small><strong id="ckMs">—</strong></div>
+          </div>
+          <div class="card memoria" id="cArbolCard">
+            <h3>El árbol de la búsqueda</h3>
+            <p class="sub">Cada punto es una rutina a medio armar que el algoritmo abrió; las columnas dicen cuántos productos lleva. Pasa el cursor por un punto para ver cuál es. En rosa, el camino hasta la rutina elegida.</p>
+            <svg id="cArbol" class="arbol" role="img" aria-label="Árbol de la búsqueda"></svg>
+            <h3>Cómo llegó a esta rutina</h3>
+            <p class="sub" id="cPizTxt"></p>
+            <ol id="cPizarra" class="pizarra"></ol>
+          </div>
+        </div>
+        <aside class="v-panel">
+          <div class="tabs" id="cTabs" role="tablist">
+            <button type="button" role="tab" data-tab="mision" aria-selected="true">Misión</button>
+            <button type="button" role="tab" data-tab="como" aria-selected="false">Cómo busca</button>
+            <button type="button" role="tab" data-tab="comparar" aria-selected="false">Comparar</button>
+          </div>
+          <div class="tab ctab" data-panel="mision">
+            <p id="cHistoria" class="historia"></p>
+            <div class="objetivo"><small>Objetivo</small><p id="cObjetivo"></p></div>
+            <p id="cAviso" class="aviso-cos"></p>
+            <h3>Cómo está hecho el agente</h3>
+            <dl id="cAgente" class="peas"></dl>
+            <h3>Las reglas</h3>
+            <ul id="cReglas" class="como-lista"></ul>
+            <h3>Predice antes de mirar</h3>
+            <ol id="cPreguntas" class="preguntas"></ol>
+          </div>
+          <div class="tab ctab" data-panel="como" hidden><div id="cComo" class="como"></div></div>
+          <div class="tab ctab" data-panel="comparar" hidden>
+            <h3>Los cuatro algoritmos con este perfil</h3>
+            <div id="cCmp"></div>
+            <h3>Las mejores opciones posibles</h3>
+            <p class="sub">Todas las rutinas que cumplen las reglas, de la más barata a la más cara. La primera es la que buscan costo uniforme y A*.</p>
+            <div id="cTop" class="top-lista"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie"><b class="credito">Creado por Alejandra Montaña · 2026</b><span>Cartógrafo corre entero en el navegador. Cada misión se valida en Python con NetworkX.</span></footer>
+
+  <script src="simulador/azar.js?v=33894c29"></script>
+  <script src="simulador/nucleo.js?v=33894c29"></script>
+  <script src="simulador/turno.js?v=33894c29"></script>
+  <script src="simulador/finanzas.js?v=33894c29"></script>
+  <script src="simulador/iso.js?v=33894c29"></script>
+  <script src="escenarios/misiones.js?v=33894c29"></script>
+  <script src="simulador/cosmetica.js?v=33894c29"></script>
+  <script src="simulador/fin_app.js?v=33894c29"></script>
+  <script src="simulador/cos_app.js?v=33894c29"></script>
+  <script src="simulador/app.js?v=33894c29"></script>
+</body>
+</html>
