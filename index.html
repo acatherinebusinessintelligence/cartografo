@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cartógrafo · por qué buscar</title>
+  <meta name="description" content="Para qué sirven los algoritmos de búsqueda, qué hace cada uno (BFS, DFS, costo uniforme y A*) y cuál conviene en cada problema. Con ejemplos interactivos.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2310211f' width='32' height='32' rx='8'/%3E%3Ccircle cx='8' cy='22' r='3' fill='%237ddec8'/%3E%3Ccircle cx='24' cy='10' r='3' fill='%23f0c36a'/%3E%3Cpath d='M8 22 L16 16 L24 10' stroke='%23f4f0e6' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=IBM+Plex+Mono:wght@500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="simulador/misiones.css?v=6d394910">
+  <link rel="stylesheet" href="simulador/inicio.css?v=6d394910">
+</head>
+<body>
+  <header class="top">
+    <a class="marca" href="index.html">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="1" y="1" width="46" height="46" rx="14" fill="#1b3330"/>
+        <circle cx="14" cy="32" r="4" fill="#7ddec8"/>
+        <circle cx="34" cy="16" r="4" fill="#f0c36a"/>
+        <path d="M14 32 C20 30 24 22 34 16" fill="none" stroke="#f6f1e7" stroke-width="2"/>
+      </svg>
+      <span>Cartógrafo</span>
+    </a>
+    <nav class="top-nav" aria-label="Secciones">
+      <a href="index.html" class="activo" aria-current="page">Inicio</a>
+      <a href="laboratorio.html">Laboratorio de búsqueda</a>
+      <a href="misiones.html">Misiones de agentes</a>
+      <a href="taller.html">Crea tu misión</a>
+    </nav>
+  </header>
+
+  <main class="inicio">
+    <!-- ======== portada ======== -->
+    <section class="portada">
+      <div>
+        <p class="eyebrow">Algoritmos de búsqueda</p>
+        <h1>Pensar antes<br>de moverse.</h1>
+        <p class="lede">Un GPS que esquiva un trancón, un robot que limpia la casa, una asesora que decide qué deuda pagar primero. Por dentro hacen lo mismo: imaginan los estados a los que pueden llegar, los comparan y eligen el siguiente paso. Eso es <b>buscar</b>.</p>
+        <div class="cta">
+          <a class="b-pri" href="#algoritmos">Ver los cuatro algoritmos</a>
+          <a class="b-sec" href="#elegir">¿Cuál uso?</a>
+          <a class="b-sec" href="misiones.html">Ir a las misiones →</a>
+        </div>
+      </div>
+      <div class="portada-mapa" aria-hidden="true">
+        <svg id="portadaSvg" viewBox="0 0 360 260"></svg>
+      </div>
+    </section>
+
+    <!-- ======== por qué importa ======== -->
+    <section class="bloque">
+      <p class="eyebrow">Por qué importa</p>
+      <h2>Casi toda decisión de un agente es una búsqueda</h2>
+      <p class="sub ancho">Cuando el agente no puede probar en el mundo real (sería caro, lento o peligroso), prueba en su cabeza: arma un modelo del problema y busca allí la mejor secuencia de acciones. Los mismos cuatro algoritmos sirven para problemas que no se parecen en nada.</p>
+      <div class="usos">
+        <a class="uso" href="misiones.html#ambulancia"><b>Rutas y movilidad</b><span>GPS, ambulancias, drones, buses que esperan el verde.</span><em>Ambulancia · Dron · Semáforo</em></a>
+        <a class="uso" href="misiones.html#almacen"><b>Robots y logística</b><span>Bodegas, entregas, rondas de hospital, aspiradoras.</span><em>Almacén · Logística · Hospital</em></a>
+        <a class="uso" href="misiones.html#finanzas"><b>Planeación y decisiones</b><span>Qué deuda pagar, qué curso tomar, qué parcela revisar primero.</span><em>Finanzas · Tutor · Finca</em></a>
+        <a class="uso" href="misiones.html#ciber"><b>Seguridad y rescate</b><span>¿Puede un atacante llegar a los datos? ¿Por dónde entra el rescate?</span><em>Ciberseguridad · Rescate</em></a>
+      </div>
+    </section>
+
+    <!-- ======== las cinco piezas ======== -->
+    <section class="bloque">
+      <p class="eyebrow">Antes de buscar</p>
+      <h2>Todo problema de búsqueda tiene cinco piezas</h2>
+      <p class="sub ancho">Si no puedes escribir estas cinco cosas, todavía no tienes un problema que un algoritmo pueda resolver. El ejemplo es el robot que limpia la casa.</p>
+      <ol class="piezas">
+        <li><b>Estado</b><span>Todo lo que el agente necesita saber para decidir.</span><code>(baldosa, manchas limpias)</code></li>
+        <li><b>Estado inicial</b><span>Dónde empieza.</span><code>(base, ninguna)</code></li>
+        <li><b>Acciones</b><span>Qué puede hacer en cada estado.</span><code>norte, sur, este, oeste</code></li>
+        <li><b>Meta</b><span>Cómo sabe que terminó.</span><code>todas limpias y en la base</code></li>
+        <li><b>Costo</b><span>Cuánto vale cada acción. Puede ser tiempo, energía o dinero.</span><code>piso 1 s · alfombra 3 s</code></li>
+      </ol>
+    </section>
+
+    <!-- ======== los cuatro algoritmos ======== -->
+    <section class="bloque" id="algoritmos">
+      <p class="eyebrow">Los cuatro algoritmos</p>
+      <h2>El mismo mapa, cuatro maneras de buscar</h2>
+      <p class="sub ancho">Ir de <b class="t-ini">S</b> a <b class="t-meta">M</b>. Las casillas cafés son barro: cuestan 5 en vez de 1. Elige un algoritmo y mira en qué orden revisa las casillas (el número es el turno en que la sacó de su lista). El camino final aparece al terminar.</p>
+      <div class="demo">
+        <div class="demo-lado">
+          <div class="seg" id="demoAlgos" role="radiogroup" aria-label="Algoritmo">
+            <button type="button" data-algo="bfs">BFS</button>
+            <button type="button" data-algo="dfs">DFS</button>
+            <button type="button" data-algo="ucs">Costo uniforme</button>
+            <button type="button" data-algo="astar">A*</button>
+          </div>
+          <div class="demo-mapa"><svg id="demoSvg" role="img" aria-label="Mapa de ejemplo"></svg></div>
+          <div class="demo-datos">
+            <div><small>Casillas revisadas</small><strong id="dExp">—</strong></div>
+            <div><small>Pasos del camino</small><strong id="dPasos">—</strong></div>
+            <div><small>Costo del camino</small><strong id="dCosto">—</strong></div>
+          </div>
+        </div>
+        <article class="ficha-algo" id="demoFicha"></article>
+      </div>
+    </section>
+
+    <!-- ======== tabla ======== -->
+    <section class="bloque">
+      <p class="eyebrow">En una tabla</p>
+      <h2>Lo que garantiza cada uno</h2>
+      <div class="tabla-scroll">
+        <table class="comparativa">
+          <thead>
+            <tr><th></th><th>BFS</th><th>DFS</th><th>Costo uniforme</th><th>A*</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>Saca de su lista…</th><td>el más antiguo (cola)</td><td>el más reciente (pila)</td><td>el de menor costo acumulado <code>g</code></td><td>el de menor <code>f = g + h</code></td></tr>
+            <tr><th>Siempre encuentra solución si existe</th><td class="si">Sí</td><td class="medio">En mapas finitos, sí</td><td class="si">Sí</td><td class="si">Sí</td></tr>
+            <tr><th>Encuentra la mejor</th><td class="medio">La de menos pasos</td><td class="no">No</td><td class="si">La de menor costo</td><td class="si">La de menor costo, si <code>h</code> no exagera</td></tr>
+            <tr><th>Memoria</th><td class="no">Mucha</td><td class="si">Poca</td><td class="no">Mucha</td><td class="medio">Menos que costo uniforme</td></tr>
+            <tr><th>Necesita</th><td>Nada más</td><td>Nada más</td><td>Costos de las acciones</td><td>Costos + una pista <code>h</code></td></tr>
+            <tr><th>Úsalo cuando…</th><td>todas las acciones cuestan igual</td><td>basta una solución y la memoria es escasa</td><td>los costos varían y no tienes pista</td><td>los costos varían y sabes estimar cuánto falta</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======== elegir ======== -->
+    <section class="bloque" id="elegir">
+      <p class="eyebrow">Guía rápida</p>
+      <h2>¿Cuál uso en mi problema?</h2>
+      <p class="sub ancho">Responde con tu problema en mente. La guía sigue la teoría; después, ábrela en una misión y compruébalo con los números.</p>
+      <div class="guia">
+        <div class="preguntas-guia" id="guia"></div>
+        <article class="resultado-guia" id="guiaRes" hidden></article>
+      </div>
+    </section>
+
+    <!-- ======== dónde brilla ======== -->
+    <section class="bloque">
+      <p class="eyebrow">De la teoría a los escenarios</p>
+      <h2>Dónde brilla cada uno</h2>
+      <p class="sub ancho">Los números de cada tarjeta se calculan ahora mismo en tu navegador con el mismo motor de las misiones: los cuatro algoritmos sobre el mismo escenario.</p>
+      <div class="brilla" id="brilla"></div>
+    </section>
+
+    <!-- ======== más allá ======== -->
+    <section class="bloque mas-alla">
+      <div>
+        <p class="eyebrow">Más allá de encontrar un camino</p>
+        <h2>Cuando el mundo cambia, buscar es solo la mitad</h2>
+        <p>En el mundo real aparecen trancones, se daña el horno o alguien cierra una puerta. El plan óptimo de hace un minuto deja de serlo. Un agente útil <b>busca, actúa, percibe y vuelve a buscar</b>. En las misiones, activa «Mundo vivo» para verlo; en la panadería, compara estrategias en 300 realidades distintas.</p>
+        <div class="cta">
+          <a class="b-pri" href="misiones.html#finanzas">La panadería sale de deudas</a>
+          <a class="b-sec" href="misiones.html#rescate">El robot de rescate</a>
+          <a class="b-sec" href="laboratorio.html">Ver las cuentas g, h y f paso a paso</a>
+          <a class="b-pri" href="taller.html">Crea tu propia misión</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie"><b class="credito">Creado por Alejandra Montaña · 2026</b><span>Cartógrafo corre entero en el navegador. Los números de esta página salen del mismo motor que validan las pruebas en Python con NetworkX.</span></footer>
+
+  <script src="simulador/azar.js?v=6d394910"></script>
+  <script src="simulador/nucleo.js?v=6d394910"></script>
+  <script src="simulador/finanzas.js?v=6d394910"></script>
+  <script src="escenarios/misiones.js?v=6d394910"></script>
+  <script src="simulador/inicio.js?v=6d394910"></script>
+</body>
+</html>

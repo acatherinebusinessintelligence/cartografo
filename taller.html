@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cartógrafo · crea tu misión</title>
+  <meta name="description" content="Taller para diseñar tu propio caso de búsqueda: escribe la historia, pinta el mapa, prueba los cuatro algoritmos y ábrelo como misión.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2310211f' width='32' height='32' rx='8'/%3E%3Ccircle cx='8' cy='22' r='3' fill='%237ddec8'/%3E%3Ccircle cx='24' cy='10' r='3' fill='%23f0c36a'/%3E%3Cpath d='M8 22 L16 16 L24 10' stroke='%23f4f0e6' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=IBM+Plex+Mono:wght@500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="simulador/misiones.css?v=6d394910">
+  <link rel="stylesheet" href="simulador/taller.css?v=6d394910">
+</head>
+<body>
+  <header class="top">
+    <a class="marca" href="index.html">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="1" y="1" width="46" height="46" rx="14" fill="#1b3330"/>
+        <circle cx="14" cy="32" r="4" fill="#7ddec8"/>
+        <circle cx="34" cy="16" r="4" fill="#f0c36a"/>
+        <path d="M14 32 C20 30 24 22 34 16" fill="none" stroke="#f6f1e7" stroke-width="2"/>
+      </svg>
+      <span>Cartógrafo</span>
+    </a>
+    <nav class="top-nav" aria-label="Secciones">
+      <a href="index.html">Inicio</a>
+      <a href="laboratorio.html">Laboratorio de búsqueda</a>
+      <a href="misiones.html">Misiones de agentes</a>
+      <a href="taller.html" class="activo" aria-current="page">Crea tu misión</a>
+    </nav>
+  </header>
+
+  <main class="taller-pag">
+    <section class="taller-intro">
+      <div>
+        <p class="eyebrow">Taller de misiones</p>
+        <h1>Arma tu propio caso.</h1>
+        <p class="lede">Escribe una historia, pinta el mundo donde ocurre y decide qué tiene que lograr el agente. Mientras lo armas, los cuatro algoritmos lo resuelven y te dicen si tu caso enseña algo. Al final, ábrelo como una misión más, descárgalo para entregarlo o compártelo con un enlace.</p>
+      </div>
+      <ol class="pasos-taller">
+        <li><b>1</b><span>Cuenta la historia</span></li>
+        <li><b>2</b><span>Pinta el mapa</span></li>
+        <li><b>3</b><span>Elige la meta</span></li>
+        <li><b>4</b><span>Prueba y comparte</span></li>
+      </ol>
+    </section>
+
+    <div id="tAviso" class="aviso-taller" role="status" aria-live="polite" hidden></div>
+
+    <section class="bloque-t" id="tEditor">
+      <div class="bloque-cab">
+        <span class="num">1</span>
+        <div><h2>La historia</h2><p class="sub">Quién es el agente, dónde está y qué problema tiene que resolver.</p></div>
+        <div class="fila-btn derecha">
+          <button type="button" id="tEjemplo" class="b-sec">Cargar el ejemplo</button>
+          <button type="button" id="tNuevo" class="b-sec">Mapa vacío</button>
+        </div>
+      </div>
+      <div class="form-grid">
+        <label>Título de la misión<input id="tTitulo" type="text" maxlength="60" placeholder="El domiciliario del barrio"></label>
+        <label>Lugar<input id="tLugar" type="text" maxlength="60" placeholder="Un barrio con calles y un parque"></label>
+        <label class="ancha">Historia<textarea id="tHistoria" rows="3" maxlength="700" placeholder="¿Qué está pasando? ¿Qué complica el camino?"></textarea></label>
+        <label class="ancha">Objetivo<input id="tObjetivo" type="text" maxlength="160" placeholder="Entregar los pedidos y llegar a la meta en el menor tiempo."></label>
+        <label>Nombre del agente<input id="tAgNombre" type="text" maxlength="30" placeholder="Lina"></label>
+        <div class="dos-col">
+          <label>Cómo se ve<select id="tAgDibujo"></select></label>
+          <label>Color<input id="tAgColor" type="color"></label>
+        </div>
+        <label>Qué percibe<input id="tAgPercibe" type="text" maxlength="160" placeholder="El estado de cada calle y dónde están los pedidos."></label>
+        <label>Qué recuerda<input id="tAgRecuerda" type="text" maxlength="160" placeholder="Qué pedidos ya entregó."></label>
+        <label class="ancha">Qué puede hacer<input id="tAgAcciones" type="text" maxlength="160" placeholder="Avanzar una cuadra por cualquier vía abierta."></label>
+      </div>
+    </section>
+
+    <section class="bloque-t">
+      <div class="bloque-cab">
+        <span class="num">2</span>
+        <div><h2>El mapa</h2><p class="sub">Elige una pieza y pinta: clic o arrastrar. Clic derecho borra. El nombre y el costo de cada terreno se pueden cambiar.</p></div>
+        <div class="tam">
+          <label>Filas<input id="tFilas" type="number" min="4" max="14"></label>
+          <label>Columnas<input id="tCols" type="number" min="4" max="16"></label>
+          <label>Ambiente<select id="tTema"></select></label>
+        </div>
+      </div>
+      <div class="mapa-grid">
+        <div>
+          <div id="tPaleta" class="paleta"></div>
+          <div id="tAjuste" class="ajuste"></div>
+          <div id="tGrilla" class="grilla" role="grid" aria-label="Mapa: clic para pintar"></div>
+        </div>
+        <div class="iso-prev">
+          <canvas id="tIso" aria-hidden="true"></canvas>
+          <p id="tIsoTxt" class="sub"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bloque-t">
+      <div class="bloque-cab">
+        <span class="num">3</span>
+        <div><h2>La meta y el relato</h2><p class="sub">Qué cuenta como terminar y qué se narra en el camino. Puedes usar {agente}, {obj} y {celda} en los textos.</p></div>
+      </div>
+      <div class="form-grid">
+        <label>Qué tiene que lograr
+          <select id="tModo">
+            <option value="visitar">Pasar por todos los objetivos</option>
+            <option value="alguno">Llegar a uno cualquiera de los objetivos</option>
+          </select>
+        </label>
+        <label>Dónde termina
+          <select id="tFinal">
+            <option value="inicio">Vuelve al inicio</option>
+            <option value="meta">En la «Meta final»</option>
+            <option value="ninguno">Donde cumpla el último objetivo</option>
+          </select>
+        </label>
+        <label>Unidad del costo<input id="tUnidad" type="text" maxlength="12" placeholder="min"></label>
+        <label>Al empezar se narra<input id="tTxtInicio" type="text" maxlength="160" placeholder="Lina sube a la bicicleta con dos pedidos."></label>
+        <label>Al cumplir un objetivo<input id="tTxtCumplir" type="text" maxlength="160" placeholder="{agente} entrega el pedido en {celda}."></label>
+        <label>Al terminar<input id="tTxtFin" type="text" maxlength="160" placeholder="Lina llega al punto de entrega a tiempo."></label>
+        <label class="ancha">Preguntas para quien juegue tu misión
+          <input id="tPreg1" type="text" maxlength="160" placeholder="¿Por qué BFS cruza por donde costo uniforme no?">
+          <input id="tPreg2" type="text" maxlength="160" placeholder="Quita un obstáculo. ¿Cambia la ruta óptima?">
+          <input id="tPreg3" type="text" maxlength="160" placeholder="¿Cuántos estados ahorra A*?">
+        </label>
+      </div>
+    </section>
+
+    <section class="bloque-t">
+      <div class="bloque-cab">
+        <span class="num">4</span>
+        <div><h2>Prueba y comparte</h2><p class="sub">Los cuatro algoritmos resuelven tu caso cada vez que cambias algo. Las pistas te dicen si tu caso enseña la diferencia entre ellos.</p></div>
+      </div>
+      <div id="tPrueba" class="prueba"></div>
+      <div class="fila-btn acciones-t">
+        <button type="button" id="tAbrir" class="b-pri">Abrir como misión</button>
+        <button type="button" id="tDescargar" class="b-sec">Descargar JSON (para entregar)</button>
+        <button type="button" id="tEnlace" class="b-sec">Copiar enlace para compartir</button>
+        <label class="b-sec importar">Importar JSON<input id="tImportar" type="file" accept=".json,application/json"></label>
+      </div>
+      <input id="tEnlaceTxt" class="enlace-txt" type="text" readonly hidden aria-label="Enlace de tu misión">
+    </section>
+
+    <section class="bloque-t">
+      <div class="bloque-cab">
+        <span class="num">★</span>
+        <div><h2>Tus misiones</h2><p class="sub">Las que abriste como misión. Se guardan en este navegador; para no perderlas, descárgalas en JSON.</p></div>
+      </div>
+      <div id="tGuardadas" class="guardadas"></div>
+    </section>
+  </main>
+
+  <footer class="pie"><b class="credito">Creado por Alejandra Montaña · 2026</b><span>Cartógrafo corre entero en el navegador. Tu misión se guarda en este equipo y no se envía a ningún servidor.</span></footer>
+
+  <script src="simulador/nucleo.js?v=6d394910"></script>
+  <script src="simulador/iso.js?v=6d394910"></script>
+  <script src="simulador/propias.js?v=6d394910"></script>
+  <script src="simulador/taller.js?v=6d394910"></script>
+</body>
+</html>
